@@ -1,7 +1,7 @@
 #region Using declarations
 using NinjaTrader.Cbi;
 using NinjaTrader.Data;
-using NinjaTrader.NinjaScript.AddOns;
+using NinjaTrader.NinjaScript.AddOns.OrderFlow;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 #endregion
@@ -14,7 +14,6 @@ namespace NinjaTrader.NinjaScript.Strategies
         #region Variables
 
         private const string GROUP_NAME = "OrderFlow";
-        //private Strategies strategies = new Strategies()
 
         #endregion
 
@@ -67,7 +66,6 @@ namespace NinjaTrader.NinjaScript.Strategies
             {
                 UpdateDataBars();
                 UpdateGlobalState();
-                // PrintStats();
             }
         }
 
@@ -90,13 +88,20 @@ namespace NinjaTrader.NinjaScript.Strategies
         private void PrintStats()
         {
             Print(string.Format("{0} | {1}", ToDay(Time[0]), ToTime(Time[0])));
-            Print(string.Format("Median Point of Control: {0}", GlobalState.MedianPointOfControl));
+            Print(string.Format("Median Point of Control: {0}", GlobalState.OrderFlowStats.MedianPointOfControl));
+            Print(string.Format("Cumulative Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeDelta.change));
+            Print(string.Format("Cumulative Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeDelta.percent));
+            Print(string.Format("Cumulative Max Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.change));
+            Print(string.Format("Cumulative Max Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.percent));
+            Print(string.Format("Cumulative Min Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.change));
+            Print(string.Format("Cumulative Min Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.percent));
             Print("\n");
         }
 
         private void UpdateGlobalState()
         {
-            OrderFlowStrategyHelper.SetMedianPointOfControl();
+            Helper.SetMedianPointOfControl();
+            Helper.SetCumulativeDeltaChanges();
         }
 
         private void UpdateDataBars()

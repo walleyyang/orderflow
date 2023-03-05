@@ -24,7 +24,7 @@ using NinjaTrader.NinjaScript.DrawingTools;
 //This namespace holds Indicators in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.Indicators
 {
-	public class OrderFlowIndicator : Indicator
+	public class Stats : Indicator
 	{
 		protected override void OnStateChange()
 		{
@@ -62,19 +62,19 @@ namespace NinjaTrader.NinjaScript.Indicators
 {
 	public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
 	{
-		private OrderFlowIndicator[] cacheOrderFlowIndicator;
-		public OrderFlowIndicator OrderFlowIndicator()
+		private Stats[] cacheStats;
+		public Stats Stats()
 		{
-			return OrderFlowIndicator(Input);
+			return Stats(Input);
 		}
 
-		public OrderFlowIndicator OrderFlowIndicator(ISeries<double> input)
+		public Stats Stats(ISeries<double> input)
 		{
-			if (cacheOrderFlowIndicator != null)
-				for (int idx = 0; idx < cacheOrderFlowIndicator.Length; idx++)
-					if (cacheOrderFlowIndicator[idx] != null &&  cacheOrderFlowIndicator[idx].EqualsInput(input))
-						return cacheOrderFlowIndicator[idx];
-			return CacheIndicator<OrderFlowIndicator>(new OrderFlowIndicator(), input, ref cacheOrderFlowIndicator);
+			if (cacheStats != null)
+				for (int idx = 0; idx < cacheStats.Length; idx++)
+					if (cacheStats[idx] != null &&  cacheStats[idx].EqualsInput(input))
+						return cacheStats[idx];
+			return CacheIndicator<Stats>(new Stats(), input, ref cacheStats);
 		}
 	}
 }
@@ -83,14 +83,14 @@ namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
 {
 	public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
 	{
-		public Indicators.OrderFlowIndicator OrderFlowIndicator()
+		public Indicators.Stats Stats()
 		{
-			return indicator.OrderFlowIndicator(Input);
+			return indicator.Stats(Input);
 		}
 
-		public Indicators.OrderFlowIndicator OrderFlowIndicator(ISeries<double> input )
+		public Indicators.Stats Stats(ISeries<double> input )
 		{
-			return indicator.OrderFlowIndicator(input);
+			return indicator.Stats(input);
 		}
 	}
 }
@@ -99,14 +99,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
 	public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
 	{
-		public Indicators.OrderFlowIndicator OrderFlowIndicator()
+		public Indicators.Stats Stats()
 		{
-			return indicator.OrderFlowIndicator(Input);
+			return indicator.Stats(Input);
 		}
 
-		public Indicators.OrderFlowIndicator OrderFlowIndicator(ISeries<double> input )
+		public Indicators.Stats Stats(ISeries<double> input )
 		{
-			return indicator.OrderFlowIndicator(input);
+			return indicator.Stats(input);
 		}
 	}
 }
