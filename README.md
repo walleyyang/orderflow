@@ -1,5 +1,5 @@
 # Important
-***Requires lifetime NinjaTrader 8 license that contains the volumetric data.*** The files in the addons, indicators and strategies folders can simply be copied over to the respective NinjaTrader folders. Re-compile by pressing F5 in the editor and the strategy and indicator should display in their list. ***Make sure to add the indicator and enable the strategy.***
+***Requires lifetime NinjaTrader 8 license that contains the volumetric data.*** The files in the addons, indicators folders can simply be copied over to the respective NinjaTrader folders. Re-compile by pressing F5 in the editor and indicator should display in their list.
 
 # OrderFlowStats
 <p align="center">
@@ -15,10 +15,7 @@ Displays stats about the current orderflow. The following are the current displa
 - ***Cumulative Max Delta:*** Displays the cumulative max delta for the previous bar to the MaxBarLookBack.
 - ***Cumulative Min Delta:*** Displays the cumulative min delta for the previous bar to the MaxBarLookBack.
 
-# OrderFlowStrategy
-The following are the current properties for the OrderFlowStrategy:
+# OrderFlowStats Indicator
+The following are the current properties for the OrderFlowStats Indicator:
 - ***MaxBarLookBack:*** The x amount of previous bars used for calculations.
 - ***FlatRange:*** The number used to determine the flat range. For example, entering 1 will create a range of 1 to -1. Anything between there will be considered flat.
-
-# Common Error
-***Incorrect Data Series:*** The strategy may be set in the Strategies tab next to the other tabs such as Accounts, Orders, Executions, etc. Setting it here may default the data series to a non volumetric data series, which may cause errors.
