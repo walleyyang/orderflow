@@ -107,7 +107,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             Print("\n");
         }
 
-        // IsFirstTickOfBar seems to still use two bars ago from current bar that visually formed.
+        // IsFirstTickOfBar seems to still somtimes use two bars ago from current bar that visually formed.
         // This will check the bar number instead of using IsFirstTickOfBar
         private bool IsRealNextBar()
         {
