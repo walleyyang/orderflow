@@ -19,3 +19,6 @@ Displays stats about the current orderflow. The following are the current displa
 The following are the current properties for the OrderFlowStrategy:
 - ***MaxBarLookBack:*** The x amount of previous bars used for calculations.
 - ***FlatRange:*** The number used to determine the flat range. For example, entering 1 will create a range of 1 to -1. Anything between there will be considered flat.
+
+# Common Error
+***Incorrect Data Series:*** The strategy may be set in the Strategies tab next to the other tabs such as Accounts, Orders, Executions, etc. Setting it here may default the data series to a non volumetric data series, which may cause errors.

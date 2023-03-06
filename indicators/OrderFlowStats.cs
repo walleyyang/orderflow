@@ -40,27 +40,35 @@ namespace NinjaTrader.NinjaScript.Indicators
 
         protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
         {
-            StatsDisplayData medianPOC = GlobalState.OrderFlowStatsDisplay.MedianPointOfControl;
-            StatsDisplayData cumulativeDelta = GlobalState.OrderFlowStatsDisplay.CumulativeDelta;
-            StatsDisplayData cumulativeMaxDelta = GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta;
-            StatsDisplayData cumulativeMinDelta = GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta;
-
-            List<StatsDisplayData> stats = new List<StatsDisplayData>
+            try
             {
-                medianPOC,
-                cumulativeDelta,
-                cumulativeMaxDelta,
-                cumulativeMinDelta
-            };
+                StatsDisplayData medianPOC = GlobalState.OrderFlowStatsDisplay.MedianPointOfControl;
+                StatsDisplayData cumulativeDelta = GlobalState.OrderFlowStatsDisplay.CumulativeDelta;
+                StatsDisplayData cumulativeMaxDelta = GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta;
+                StatsDisplayData cumulativeMinDelta = GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta;
 
-            RenderStatsBox();
+                List<StatsDisplayData> stats = new List<StatsDisplayData>
+                {
+                    medianPOC,
+                    cumulativeDelta,
+                    cumulativeMaxDelta,
+                    cumulativeMinDelta
+                };
 
-            int startPointY = 30;
+                RenderStatsBox();
 
-            foreach (StatsDisplayData stat in stats)
+                int startPointY = 30;
+
+                foreach (StatsDisplayData stat in stats)
+                {
+                    RenderStatsText(startPointY, stat.direction, stat.text);
+                    startPointY += 20;
+                }
+            }
+            catch
             {
-                RenderStatsText(startPointY, stat.direction, stat.text);
-                startPointY += 20;
+                RenderStatsText(30, Direction.FLAT, "OrderFlowStats");
+                RenderStatsText(50, Direction.FLAT, "Waiting for the strategy to be enabled.");
             }
         }
 

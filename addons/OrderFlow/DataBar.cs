@@ -6,7 +6,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
 {
     public class DataBar
     {
-        public int time;
+        public int time, barNumber;
         public double pointOfControl;
         public long maxDelta, minDelta, deltaChange, delta, cumulativeDelta, volume;
     }
