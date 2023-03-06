@@ -2,9 +2,9 @@
 #endregion
 
 //This namespace holds Indicators in this folder and is required. Do not change it. 
+using NinjaTrader.Gui.Chart;
 using NinjaTrader.NinjaScript.AddOns.OrderFlow;
-using NinjaTrader.NinjaScript.DrawingTools;
-using System.Windows.Media;
+using System.Collections.Generic;
 
 namespace NinjaTrader.NinjaScript.Indicators
 {
@@ -35,24 +35,70 @@ namespace NinjaTrader.NinjaScript.Indicators
 
         protected override void OnBarUpdate()
         {
-            string medianPOC = string.Format("Median Point of Control:  {0}", GlobalState.OrderFlowStats.MedianPointOfControl);
-            string cumulativeDelta = string.Format("Cumulative Delta:  {0}  |  {1}%", GlobalState.OrderFlowStats.CumulativeDelta.change, GlobalState.OrderFlowStats.CumulativeDelta.percent);
-            string cumulativeMaxDelta = string.Format("Cumulative Max Delta:  {0}  |  {1}%", GlobalState.OrderFlowStats.CumulativeMaxDelta.change, GlobalState.OrderFlowStats.CumulativeMaxDelta.percent);
-            string cumulativeMinDelta = string.Format("Cumulative Min Delta:  {0}  |  {1}%", GlobalState.OrderFlowStats.CumulativeMinDelta.change, GlobalState.OrderFlowStats.CumulativeMinDelta.percent);
 
-            string text = string.Format("{0}\n{1}\n{2}\n{3}", medianPOC, cumulativeDelta, cumulativeMaxDelta, cumulativeMinDelta);
+        }
 
-            Draw.TextFixed(
-                this,
-                "OrderFlowStats",
-                text,
-                TextPosition.TopLeft,
-                Brushes.White,
-                new NinjaTrader.Gui.Tools.SimpleFont("Arial ", 12) { Size = 14, Bold = true },
-                Brushes.Transparent,
-                Brushes.Black,
-                100
-            );
+        protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
+        {
+            StatsDisplayData medianPOC = GlobalState.OrderFlowStatsDisplay.MedianPointOfControl;
+            StatsDisplayData cumulativeDelta = GlobalState.OrderFlowStatsDisplay.CumulativeDelta;
+            StatsDisplayData cumulativeMaxDelta = GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta;
+            StatsDisplayData cumulativeMinDelta = GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta;
+
+            List<StatsDisplayData> stats = new List<StatsDisplayData>
+            {
+                medianPOC,
+                cumulativeDelta,
+                cumulativeMaxDelta,
+                cumulativeMinDelta
+            };
+
+            RenderStatsBox();
+
+            int startPointY = 30;
+
+            foreach (StatsDisplayData stat in stats)
+            {
+                RenderStatsText(startPointY, stat.direction, stat.text);
+                startPointY += 20;
+            }
+        }
+
+        private void RenderStatsBox()
+        {
+            SharpDX.RectangleF rectangleF = new SharpDX.RectangleF(ChartPanel.X + 10, ChartPanel.Y + 25, 290, 90);
+            SharpDX.Direct2D1.SolidColorBrush brush = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget, SharpDX.Color.Black);
+            RenderTarget.FillRectangle(rectangleF, brush);
+            RenderTarget.DrawRectangle(rectangleF, brush);
+
+            brush.Dispose();
+        }
+
+        private void RenderStatsText(int startPointY, Direction statDirection, string text)
+        {
+            SharpDX.Color color = SharpDX.Color.White;
+
+            if (statDirection == Direction.BULLISH)
+            {
+                color = SharpDX.Color.Green;
+            }
+
+            if (statDirection == Direction.BEARISH)
+            {
+                color = SharpDX.Color.Red;
+            }
+
+            SharpDX.Vector2 startPoint = new SharpDX.Vector2(ChartPanel.X + 15, ChartPanel.Y + startPointY);
+            SharpDX.DirectWrite.TextFormat textFormat = new SharpDX.DirectWrite.TextFormat(Core.Globals.DirectWriteFactory, "Arial", 14);
+            SharpDX.DirectWrite.TextLayout textLayout = new SharpDX.DirectWrite.TextLayout(Core.Globals.DirectWriteFactory, text, textFormat, ChartPanel.W, ChartPanel.H);
+
+            SharpDX.Direct2D1.SolidColorBrush brush = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget, color);
+
+            RenderTarget.DrawTextLayout(startPoint, textLayout, brush);
+
+            textLayout.Dispose();
+            textFormat.Dispose();
+            brush.Dispose();
         }
     }
 }

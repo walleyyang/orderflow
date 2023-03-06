@@ -24,4 +24,27 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
         public long change;
         public double percent;
     }
+
+    public class StatsDisplay
+    {
+        public StatsDisplayData MedianPointOfControl { get; set; }
+        public StatsDisplayData CumulativeDelta { get; set; }
+        public StatsDisplayData CumulativeMaxDelta { get; set; }
+        public StatsDisplayData CumulativeMinDelta { get; set; }
+
+        public StatsDisplay()
+        {
+            MedianPointOfControl = new StatsDisplayData();
+            CumulativeDelta = new StatsDisplayData();
+            CumulativeMaxDelta = new StatsDisplayData();
+            CumulativeMinDelta = new StatsDisplayData();
+        }
+    }
+
+    public class StatsDisplayData
+    {
+        public bool display;
+        public Direction direction;
+        public string text;
+    }
 }

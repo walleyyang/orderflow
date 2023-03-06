@@ -56,6 +56,57 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             GlobalState.OrderFlowStats.CumulativeMinDelta.percent = cumulativeMinDeltaPercent;
         }
 
+        public static void SetStatsDisplay(double open)
+        {
+            string medianPOC = string.Format("Median Point of Control:  {0}", GlobalState.OrderFlowStats.MedianPointOfControl);
+            string cumulativeDelta = string.Format("Cumulative Delta:  {0}  |  {1}%", GlobalState.OrderFlowStats.CumulativeDelta.change, GlobalState.OrderFlowStats.CumulativeDelta.percent);
+            string cumulativeMaxDelta = string.Format("Cumulative Max Delta:  {0}  |  {1}%", GlobalState.OrderFlowStats.CumulativeMaxDelta.change, GlobalState.OrderFlowStats.CumulativeMaxDelta.percent);
+            string cumulativeMinDelta = string.Format("Cumulative Min Delta:  {0}  |  {1}%", GlobalState.OrderFlowStats.CumulativeMinDelta.change, GlobalState.OrderFlowStats.CumulativeMinDelta.percent);
+
+            GlobalState.OrderFlowStatsDisplay.MedianPointOfControl.display = true;
+            GlobalState.OrderFlowStatsDisplay.MedianPointOfControl.text = medianPOC;
+            GlobalState.OrderFlowStatsDisplay.MedianPointOfControl.direction = GetDirection(GlobalState.OrderFlowStats.MedianPointOfControl, open);
+
+            GlobalState.OrderFlowStatsDisplay.CumulativeDelta.display = true;
+            GlobalState.OrderFlowStatsDisplay.CumulativeDelta.text = cumulativeDelta;
+            GlobalState.OrderFlowStatsDisplay.CumulativeDelta.direction = GetDirection(GlobalState.OrderFlowStats.CumulativeDelta.percent);
+
+            GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta.display = true;
+            GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta.text = cumulativeMaxDelta;
+            GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta.direction = GetDirection(GlobalState.OrderFlowStats.CumulativeMaxDelta.percent);
+
+            GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta.display = true;
+            GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta.text = cumulativeMinDelta;
+            GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta.direction = GetDirection(GlobalState.OrderFlowStats.CumulativeMinDelta.percent);
+        }
+
+        public static Direction GetDirection(double value, double comparisonValue = 0)
+        {
+            if (comparisonValue != 0)
+            {
+                // Compare value with another value
+                if (value > comparisonValue)
+                    return Direction.BULLISH;
+
+                if (value < comparisonValue)
+                    return Direction.BEARISH;
+            }
+            else
+            {
+                // Compare value with flat range
+                double maxFlatRange = Math.Abs(GlobalState.FlatRange);
+                double minFlatRange = Math.Abs(GlobalState.FlatRange) * -1;
+
+                if (value > maxFlatRange)
+                    return Direction.BULLISH;
+
+                if (value < minFlatRange)
+                    return Direction.BEARISH;
+            }
+
+            return Direction.FLAT;
+        }
+
         private static List<DataBar> GetLastSubsetDataBars()
         {
             List<DataBar> dataBarsSubset = Enumerable.Reverse(GlobalState.DataBars).Take(GlobalState.MaxBarLookBack).ToList();
