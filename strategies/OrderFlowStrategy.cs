@@ -23,6 +23,10 @@ namespace NinjaTrader.NinjaScript.Strategies
         [Display(Name = "MaxBarLookBack", Description = "The maximum bar to look back starting with previous bar.", Order = 0, GroupName = GROUP_NAME)]
         public int MaxBarLookBack { get; set; }
 
+        [NinjaScriptProperty]
+        [Display(Name = "FlatRange", Description = "The range to be considered flat. The range is the entered value from negative to postive.", Order = 1, GroupName = GROUP_NAME)]
+        public double FlatRange { get; set; }
+
         #endregion
 
         protected override void OnStateChange()
@@ -51,9 +55,11 @@ namespace NinjaTrader.NinjaScript.Strategies
                 IsInstantiatedOnEachOptimizationIteration = true;
 
                 MaxBarLookBack = 5;
+                FlatRange = 1.0;
 
                 // Global State
                 GlobalState.MaxBarLookBack = MaxBarLookBack;
+                GlobalState.FlatRange = FlatRange;
             }
         }
 
@@ -102,6 +108,7 @@ namespace NinjaTrader.NinjaScript.Strategies
         {
             Helper.SetMedianPointOfControl();
             Helper.SetCumulativeDeltaChanges();
+            Helper.SetStatsDisplay(Open[0]);
         }
 
         private void UpdateDataBars()
