@@ -15,6 +15,8 @@ namespace NinjaTrader.NinjaScript.Strategies
 
         private const string GROUP_NAME = "OrderFlow";
 
+        private int _currentBarNumber = 0;
+
         #endregion
 
         #region Properties
@@ -68,7 +70,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             if (CurrentBar < BarsRequiredToTrade)
                 return;
 
-            if (IsFirstTickOfBar)
+            if (IsRealNextBar())
             {
                 UpdateDataBars();
                 UpdateGlobalState();
@@ -81,6 +83,7 @@ namespace NinjaTrader.NinjaScript.Strategies
 
             Print(string.Format("{0} | {1}", ToDay(Time[0]), ToTime(Time[0])));
             Print(string.Format("Time: {0}", dataBar.time));
+            Print(string.Format("Bar Number: {0}", dataBar.barNumber));
             Print(string.Format("Volume: {0}", dataBar.volume));
             Print(string.Format("Delta: {0}", dataBar.delta));
             Print(string.Format("Max Delta: {0}", dataBar.maxDelta));
@@ -102,6 +105,28 @@ namespace NinjaTrader.NinjaScript.Strategies
             Print(string.Format("Cumulative Min Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.change));
             Print(string.Format("Cumulative Min Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.percent));
             Print("\n");
+        }
+
+        // IsFirstTickOfBar seems to still somtimes use two bars ago from current bar that visually formed.
+        // This will check the bar number instead of using IsFirstTickOfBar
+        private bool IsRealNextBar()
+        {
+            if (GlobalState.DataBars.Count == 0)
+            {
+                _currentBarNumber = CurrentBar;
+
+                return true;
+            }
+
+            // Make sure the current bar is a new bar and not the previous bar
+            if (CurrentBar > _currentBarNumber)
+            {
+                _currentBarNumber = CurrentBar;
+
+                return true;
+            }
+
+            return false;
         }
 
         private void UpdateGlobalState()
@@ -131,6 +156,7 @@ namespace NinjaTrader.NinjaScript.Strategies
             previousVolumetricBar.GetMaximumVolume(null, out dataBarPointOfControl);
 
             dataBar.time = ToTime(Time[offsetBar]);
+            dataBar.barNumber = CurrentBar - offsetBar;
             dataBar.volume = previousVolumetricBar.TotalVolume;
             dataBar.delta = delta;
             dataBar.maxDelta = maxDelta;
