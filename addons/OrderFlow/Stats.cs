@@ -7,15 +7,24 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
     public class Stats
     {
         public double MedianPointOfControl { get; set; }
+        public long FirstCumulativeDelta { get; set; }
+        public long FirstCumulativeMaxDelta { get; set; }
+        public long FirstCumulativeMinDelta { get; set; }
         public CumulativeDelta CumulativeDelta { get; set; }
         public CumulativeDelta CumulativeMaxDelta { get; set; }
         public CumulativeDelta CumulativeMinDelta { get; set; }
+        public CumulativeDelta CurrentCumulativeDelta { get; set; }
+        public CumulativeDelta CurrentCumulativeMaxDelta { get; set; }
+        public CumulativeDelta CurrentCumulativeMinDelta { get; set; }
 
         public Stats()
         {
             CumulativeDelta = new CumulativeDelta();
             CumulativeMaxDelta = new CumulativeDelta();
             CumulativeMinDelta = new CumulativeDelta();
+            CurrentCumulativeDelta = new CumulativeDelta();
+            CurrentCumulativeMaxDelta = new CumulativeDelta();
+            CurrentCumulativeMinDelta = new CumulativeDelta();
         }
     }
 
