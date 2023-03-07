@@ -51,7 +51,7 @@ namespace NinjaTrader.NinjaScript.Indicators
                 IsSuspendedWhileInactive = true;
 
                 MaxBarLookBack = 5;
-                FlatRange = 1.0;
+                FlatRange = 10.0;
 
                 // Global State
                 GlobalState.MaxBarLookBack = MaxBarLookBack;
@@ -71,12 +71,10 @@ namespace NinjaTrader.NinjaScript.Indicators
             if (IsRealNextBar())
             {
                 UpdateDataBars();
-                PrintDataBar();
                 UpdateGlobalStateForPreviousData();
             }
 
             UpdateGlobalStateForCurrentData();
-
         }
 
         protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
@@ -102,20 +100,27 @@ namespace NinjaTrader.NinjaScript.Indicators
 
                 foreach (StatsDisplayData stat in stats)
                 {
-                    RenderStatsText(startPointY, stat.direction, stat.text);
+                    if (stat.labelText == "Median Point of Control")
+                    {
+                        RenderStatsPointOfControlText(startPointY, stat.direction, stat.labelText, stat.text);
+                    }
+                    else
+                    {
+                        RenderStatsCumulativeDeltaText(startPointY, stat.direction, stat.currentDirection, stat.labelText, stat.text, stat.currentText);
+                    }
+
                     startPointY += 20;
                 }
             }
             catch
             {
-                RenderStatsText(30, Direction.FLAT, "OrderFlowStats");
-                RenderStatsText(50, Direction.FLAT, "Waiting for the strategy to be enabled.");
+                Print("Error OnRender");
             }
         }
 
         private void RenderStatsBox()
         {
-            SharpDX.RectangleF rectangleF = new SharpDX.RectangleF(ChartPanel.X + 10, ChartPanel.Y + 25, 390, 90);
+            SharpDX.RectangleF rectangleF = new SharpDX.RectangleF(ChartPanel.X + 10, ChartPanel.Y + 25, 430, 90);
             SharpDX.Direct2D1.SolidColorBrush brush = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget, SharpDX.Color.Black);
             RenderTarget.FillRectangle(rectangleF, brush);
             RenderTarget.DrawRectangle(rectangleF, brush);
@@ -123,67 +128,123 @@ namespace NinjaTrader.NinjaScript.Indicators
             brush.Dispose();
         }
 
-        private void RenderStatsText(int startPointY, Direction statDirection, string text)
+        private void RenderStatsPointOfControlText(int startPointY, Direction direction, string labelText, string text)
+        {
+            SharpDX.Vector2 labelTextStartPoint = GetStartPoint(15, startPointY);
+            SharpDX.Vector2 textStartPoint = GetStartPoint(180, startPointY);
+
+            SharpDX.DirectWrite.TextFormat textFormat = GetTextFormat();
+
+            SharpDX.DirectWrite.TextLayout labelTextLayout = GetTextLayout(textFormat, labelText);
+            SharpDX.DirectWrite.TextLayout textLayout = GetTextLayout(textFormat, text);
+
+            SharpDX.Direct2D1.SolidColorBrush labelTextBrush = GetBrush(Direction.FLAT);
+            SharpDX.Direct2D1.SolidColorBrush textBrush = GetBrush(direction);
+
+            RenderTarget.DrawTextLayout(labelTextStartPoint, labelTextLayout, labelTextBrush);
+            RenderTarget.DrawTextLayout(textStartPoint, textLayout, textBrush);
+
+            textFormat.Dispose();
+            labelTextLayout.Dispose();
+            textLayout.Dispose();
+            labelTextBrush.Dispose();
+            textBrush.Dispose();
+        }
+
+        private void RenderStatsCumulativeDeltaText(int startPointY, Direction direction, Direction currentDirection, string labelText, string text, string currentText)
+        {
+            SharpDX.Vector2 labelTextStartPoint = GetStartPoint(15, startPointY);
+            SharpDX.Vector2 textStartPoint = GetStartPoint(180, startPointY);
+            SharpDX.Vector2 currentTextStartPoint = GetStartPoint(320, startPointY);
+
+            SharpDX.DirectWrite.TextFormat textFormat = GetTextFormat();
+
+            SharpDX.DirectWrite.TextLayout labelTextLayout = GetTextLayout(textFormat, labelText);
+            SharpDX.DirectWrite.TextLayout textLayout = GetTextLayout(textFormat, text);
+            SharpDX.DirectWrite.TextLayout currentTextLayout = GetTextLayout(textFormat, currentText);
+
+            SharpDX.Direct2D1.SolidColorBrush labelTextBrush = GetBrush(Direction.FLAT);
+            SharpDX.Direct2D1.SolidColorBrush textBush = GetBrush(direction);
+            SharpDX.Direct2D1.SolidColorBrush currentTextBrush = GetBrush(currentDirection);
+
+            RenderTarget.DrawTextLayout(labelTextStartPoint, labelTextLayout, labelTextBrush);
+            RenderTarget.DrawTextLayout(textStartPoint, textLayout, textBush);
+            RenderTarget.DrawTextLayout(currentTextStartPoint, currentTextLayout, currentTextBrush);
+
+            textFormat.Dispose();
+            labelTextLayout.Dispose();
+            textLayout.Dispose();
+            currentTextLayout.Dispose();
+            labelTextBrush.Dispose();
+            textBush.Dispose();
+            currentTextBrush.Dispose();
+        }
+
+        private SharpDX.Vector2 GetStartPoint(int xOffset, int yOffset)
+        {
+            return new SharpDX.Vector2(ChartPanel.X + xOffset, ChartPanel.Y + yOffset);
+        }
+
+        private SharpDX.DirectWrite.TextFormat GetTextFormat()
+        {
+            return new SharpDX.DirectWrite.TextFormat(Core.Globals.DirectWriteFactory, "Arial", 14);
+        }
+
+        private SharpDX.DirectWrite.TextLayout GetTextLayout(SharpDX.DirectWrite.TextFormat textFormat, string text)
+        {
+            return new SharpDX.DirectWrite.TextLayout(Core.Globals.DirectWriteFactory, text, textFormat, ChartPanel.W, ChartPanel.H);
+        }
+
+        private SharpDX.Direct2D1.SolidColorBrush GetBrush(Direction direction)
+        {
+            return new SharpDX.Direct2D1.SolidColorBrush(RenderTarget, GetColor(direction));
+        }
+
+        private SharpDX.Color GetColor(Direction direction)
         {
             SharpDX.Color color = SharpDX.Color.White;
 
-            if (statDirection == Direction.BULLISH)
+            if (direction == Direction.BULLISH)
             {
                 color = SharpDX.Color.Green;
             }
 
-            if (statDirection == Direction.BEARISH)
+            if (direction == Direction.BEARISH)
             {
                 color = SharpDX.Color.Red;
             }
 
-            SharpDX.Vector2 startPoint = new SharpDX.Vector2(ChartPanel.X + 15, ChartPanel.Y + startPointY);
-            SharpDX.DirectWrite.TextFormat textFormat = new SharpDX.DirectWrite.TextFormat(Core.Globals.DirectWriteFactory, "Arial", 14);
-            SharpDX.DirectWrite.TextLayout textLayout = new SharpDX.DirectWrite.TextLayout(Core.Globals.DirectWriteFactory, text, textFormat, ChartPanel.W, ChartPanel.H);
-
-            SharpDX.Direct2D1.SolidColorBrush brush = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget, color);
-
-            RenderTarget.DrawTextLayout(startPoint, textLayout, brush);
-
-            textLayout.Dispose();
-            textFormat.Dispose();
-            brush.Dispose();
+            return color;
         }
 
         private void PrintDataBar()
         {
-            TriggerCustomEvent(o =>
-            {
-                DataBar dataBar = GlobalState.DataBars.Last();
+            DataBar dataBar = GlobalState.DataBars.Last();
 
-                Print(string.Format("{0} | {1}", ToDay(Time[0]), ToTime(Time[0])));
-                Print(string.Format("Time: {0}", dataBar.time));
-                Print(string.Format("Bar Number: {0}", dataBar.barNumber));
-                Print(string.Format("Volume: {0}", dataBar.volume));
-                Print(string.Format("Delta: {0}", dataBar.delta));
-                Print(string.Format("Max Delta: {0}", dataBar.maxDelta));
-                Print(string.Format("Min Delta: {0}", dataBar.minDelta));
-                Print(string.Format("Delta Change: {0}", dataBar.deltaChange));
-                Print(string.Format("Cumulative Delta: {0}", dataBar.cumulativeDelta));
-                Print(string.Format("Point of Control: {0}", dataBar.pointOfControl));
-                Print("\n");
-            }, null);
+            Print(string.Format("{0} | {1}", ToDay(Time[0]), ToTime(Time[0])));
+            Print(string.Format("Time: {0}", dataBar.time));
+            Print(string.Format("Bar Number: {0}", dataBar.barNumber));
+            Print(string.Format("Volume: {0}", dataBar.volume));
+            Print(string.Format("Delta: {0}", dataBar.delta));
+            Print(string.Format("Max Delta: {0}", dataBar.maxDelta));
+            Print(string.Format("Min Delta: {0}", dataBar.minDelta));
+            Print(string.Format("Delta Change: {0}", dataBar.deltaChange));
+            Print(string.Format("Cumulative Delta: {0}", dataBar.cumulativeDelta));
+            Print(string.Format("Point of Control: {0}", dataBar.pointOfControl));
+            Print("\n");
         }
 
         private void PrintStats()
         {
-            TriggerCustomEvent(o =>
-            {
-                Print(string.Format("{0} | {1}", ToDay(Time[0]), ToTime(Time[0])));
-                Print(string.Format("Median Point of Control: {0}", GlobalState.OrderFlowStats.MedianPointOfControl));
-                Print(string.Format("Cumulative Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeDelta.change));
-                Print(string.Format("Cumulative Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeDelta.percent));
-                Print(string.Format("Cumulative Max Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.change));
-                Print(string.Format("Cumulative Max Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.percent));
-                Print(string.Format("Cumulative Min Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.change));
-                Print(string.Format("Cumulative Min Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.percent));
-                Print("\n");
-            }, null);
+            Print(string.Format("{0} | {1}", ToDay(Time[0]), ToTime(Time[0])));
+            Print(string.Format("Median Point of Control: {0}", GlobalState.OrderFlowStats.MedianPointOfControl));
+            Print(string.Format("Cumulative Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeDelta.change));
+            Print(string.Format("Cumulative Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeDelta.percent));
+            Print(string.Format("Cumulative Max Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.change));
+            Print(string.Format("Cumulative Max Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.percent));
+            Print(string.Format("Cumulative Min Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.change));
+            Print(string.Format("Cumulative Min Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.percent));
+            Print("\n");
         }
 
         // IsFirstTickOfBar seems to still use two bars ago from current bar that visually formed.
@@ -210,8 +271,8 @@ namespace NinjaTrader.NinjaScript.Indicators
 
         private void UpdateGlobalStateForPreviousData()
         {
-            Helper.SetMedianPointOfControl();
-            Helper.SetCumulativeDeltaChanges();
+            StatsHelper.SetMedianPointOfControl();
+            StatsHelper.SetCumulativeDeltaChanges();
         }
 
         private void UpdateGlobalStateForCurrentData()
@@ -224,8 +285,9 @@ namespace NinjaTrader.NinjaScript.Indicators
 
             var currentBar = barsType.Volumes[CurrentBar];
 
-            Helper.SetCurrentCumulativeDeltaChanges(currentBar.CumulativeDelta, currentBar.MaxSeenDelta, currentBar.MinSeenDelta);
-            Helper.SetStatsDisplay(Close[0]);
+            StatsHelper.SetClose(Close[0]);
+            StatsHelper.SetCurrentCumulativeDeltaChanges(currentBar.CumulativeDelta, currentBar.MaxSeenDelta, currentBar.MinSeenDelta);
+            StatsDisplayHelper.SetStatsDisplay();
         }
 
         private void UpdateDataBars()

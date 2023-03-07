@@ -7,9 +7,13 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
     public class Stats
     {
         public double MedianPointOfControl { get; set; }
+        public double CurrentClose { get; set; }
         public long FirstCumulativeDelta { get; set; }
+        public long LastCumulativeDelta { get; set; }
         public long FirstCumulativeMaxDelta { get; set; }
+        public long LastCumulativeMaxDelta { get; set; }
         public long FirstCumulativeMinDelta { get; set; }
+        public long LastCumulativeMinDelta { get; set; }
         public CumulativeDelta CumulativeDelta { get; set; }
         public CumulativeDelta CumulativeMaxDelta { get; set; }
         public CumulativeDelta CumulativeMinDelta { get; set; }
@@ -32,6 +36,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
     {
         public long change;
         public double percent;
+        public long currentDelta;
     }
 
     public class StatsDisplay
@@ -54,6 +59,9 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
     {
         public bool display;
         public Direction direction;
+        public Direction currentDirection;
+        public string labelText;
         public string text;
+        public string currentText;
     }
 }
