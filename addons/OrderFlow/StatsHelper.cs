@@ -96,7 +96,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             GlobalState.OrderFlowStats.CurrentCumulativeDelta.change = cumulativeDeltaChange;
             // Percent change between last delta and the current
             GlobalState.OrderFlowStats.CurrentCumulativeDelta.percent = cumulativeDeltaPercent;
-            GlobalState.OrderFlowStats.CurrentCumulativeDelta.currentDelta = currentCumulativeDelta;
+            GlobalState.OrderFlowStats.CurrentCumulativeDelta.current = currentCumulativeDelta;
 
             long lastCumulativeMaxDelta = GlobalState.OrderFlowStats.LastCumulativeMaxDelta;
             long cumulativeMaxDeltaChange = GetDeltaChange(lastCumulativeMaxDelta, currentCumulativeMaxDelta);
@@ -104,7 +104,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
 
             GlobalState.OrderFlowStats.CurrentCumulativeMaxDelta.change = cumulativeMaxDeltaChange;
             GlobalState.OrderFlowStats.CurrentCumulativeMaxDelta.percent = cumulativeMaxDeltaPercent;
-            GlobalState.OrderFlowStats.CurrentCumulativeMaxDelta.currentDelta = currentCumulativeMaxDelta;
+            GlobalState.OrderFlowStats.CurrentCumulativeMaxDelta.current = currentCumulativeMaxDelta;
 
             long lastCumulativeMinDelta = GlobalState.OrderFlowStats.LastCumulativeMinDelta;
             long cumulativeMinDeltaChange = GetDeltaChange(lastCumulativeMinDelta, currentCumulativeMinDelta);
@@ -112,7 +112,35 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
 
             GlobalState.OrderFlowStats.CurrentCumulativeMinDelta.change = cumulativeMinDeltaChange;
             GlobalState.OrderFlowStats.CurrentCumulativeMinDelta.percent = cumulativeMinDeltaPercent;
-            GlobalState.OrderFlowStats.CurrentCumulativeMinDelta.currentDelta = currentCumulativeMinDelta;
+            GlobalState.OrderFlowStats.CurrentCumulativeMinDelta.current = currentCumulativeMinDelta;
+        }
+
+        public static void SetSessionHighLowLinearRegressionSlope(bool firstSessionBar)
+        {
+            if (firstSessionBar)
+            {
+                GlobalState.OrderFlowStats.LinearRegressionSlope.sessionLow = 0;
+                GlobalState.OrderFlowStats.LinearRegressionSlope.sessionHigh = 0;
+
+                return;
+            }
+
+            DataBar lastDataBar = GlobalState.DataBars.Last();
+
+            if (lastDataBar.linearRegressionSlope < GlobalState.OrderFlowStats.LinearRegressionSlope.sessionLow)
+            {
+                GlobalState.OrderFlowStats.LinearRegressionSlope.sessionLow = lastDataBar.linearRegressionSlope;
+            }
+
+            if (lastDataBar.linearRegressionSlope > GlobalState.OrderFlowStats.LinearRegressionSlope.sessionHigh)
+            {
+                GlobalState.OrderFlowStats.LinearRegressionSlope.sessionHigh = lastDataBar.linearRegressionSlope;
+            }
+        }
+
+        public static void SetCurrentLinearRegressionSlope(double linearRegressionSlope)
+        {
+            GlobalState.OrderFlowStats.CurrentLinearRegressionSlope.current = linearRegressionSlope;
         }
 
         // Returns difference between deltas

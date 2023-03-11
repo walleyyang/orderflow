@@ -12,7 +12,12 @@ Displays stats about the current orderflow. The following are the current displa
 ***Cumulative Deltas:*** 
 - ***First Number Set:*** Displays the percent changed from the MaxBarLookBack to the previous bar. Red text represents the percent changed is less than the FlatRange. Green text represents the percent changed is more than the FlatRange. White text represents the percent changed is within the FlatRange.
 
-- ***Second Number Set:*** Displays the percent changed from the previous bar's delta and the current delta. Green text represents a delta increase from the previous bar's delta. Red text represents a delta decrease from the previous bar's delta.
+- ***Second Number Set:*** Displays the percent changed from the previous bar's delta and the current delta. Green text represents an increase from the previous bar's delta. Red text represents a decrease from the previous bar's delta.
+
+***Linear Regression Slope*** 
+- ***First Number Set:*** Displays the highest and lowest linear regression slope for closed bars since the open of the session.
+
+- ***Second Number Set:*** Displays the current linear regression slope. Green text represents an increase from the previous bar's linear regression slope. Red text represents a decrease from the previous bar's linear regression slope.
 
 # OrderFlowStats Indicator
 The following are the current properties for the OrderFlowStats Indicator:

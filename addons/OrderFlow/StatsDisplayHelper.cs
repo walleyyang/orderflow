@@ -2,6 +2,8 @@
 #endregion
 
 //This namespace holds Add ons in this folder and is required. Do not change it. 
+using System.Linq;
+
 namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
 {
     public sealed class StatsDisplayHelper
@@ -12,6 +14,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             SetCumulativeDeltaDisplay();
             SetCumulativeMaxDeltaDisplay();
             SetCumulativeMinDeltaDisplay();
+            SetSessionLinearRegressionSlope();
         }
 
         private static void SetMedianPointOfControlDisplay()
@@ -43,7 +46,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             // Sets direction based on last cumulative delta value and the current cumulative delta value
             GlobalState.OrderFlowStatsDisplay.CumulativeDelta.currentDirection = Helper.GetDirection(
                 GlobalState.OrderFlowStats.LastCumulativeDelta,
-                GlobalState.OrderFlowStats.CurrentCumulativeDelta.currentDelta);
+                GlobalState.OrderFlowStats.CurrentCumulativeDelta.current);
         }
 
         private static void SetCumulativeMaxDeltaDisplay()
@@ -63,7 +66,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta.direction = Helper.GetDirection(GlobalState.OrderFlowStats.CumulativeMaxDelta.percent);
             GlobalState.OrderFlowStatsDisplay.CumulativeMaxDelta.currentDirection = Helper.GetDirection(
                 GlobalState.OrderFlowStats.LastCumulativeMaxDelta,
-                GlobalState.OrderFlowStats.CurrentCumulativeMaxDelta.currentDelta);
+                GlobalState.OrderFlowStats.CurrentCumulativeMaxDelta.current);
         }
 
         private static void SetCumulativeMinDeltaDisplay()
@@ -83,7 +86,20 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta.direction = Helper.GetDirection(GlobalState.OrderFlowStats.CumulativeMinDelta.percent);
             GlobalState.OrderFlowStatsDisplay.CumulativeMinDelta.currentDirection = Helper.GetDirection(
                 GlobalState.OrderFlowStats.LastCumulativeMinDelta,
-                GlobalState.OrderFlowStats.CurrentCumulativeMinDelta.currentDelta);
+                GlobalState.OrderFlowStats.CurrentCumulativeMinDelta.current);
+        }
+
+        private static void SetSessionLinearRegressionSlope()
+        {
+            string sessionHigh = GlobalState.OrderFlowStats.LinearRegressionSlope.sessionHigh.ToString();
+            string sessionLow = GlobalState.OrderFlowStats.LinearRegressionSlope.sessionLow.ToString();
+            double current = GlobalState.OrderFlowStats.CurrentLinearRegressionSlope.current;
+            DataBar lastDataBar = GlobalState.DataBars.Last();
+
+            GlobalState.OrderFlowStatsDisplay.LinearRegressionSlope.labelText = "Linear Regression Slope";
+            GlobalState.OrderFlowStatsDisplay.LinearRegressionSlope.text = string.Format("{0}  |  {1}", sessionHigh, sessionLow);
+            GlobalState.OrderFlowStatsDisplay.LinearRegressionSlope.currentText = current.ToString();
+            GlobalState.OrderFlowStatsDisplay.LinearRegressionSlope.currentDirection = Helper.GetDirection(lastDataBar.linearRegressionSlope, current);
         }
 
         private static string GetCumulativeDeltaText(double change, double percent)
