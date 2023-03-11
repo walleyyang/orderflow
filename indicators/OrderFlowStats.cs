@@ -4,6 +4,7 @@
 //This namespace holds Indicators in this folder and is required. Do not change it. 
 using NinjaTrader.Gui.Chart;
 using NinjaTrader.NinjaScript.AddOns.OrderFlow;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace NinjaTrader.NinjaScript.Indicators
         private const string GROUP_NAME = "OrderFlow";
 
         private int _currentBarNumber = 0;
+        private bool _firstSessionBar = false;
+        private bool _allowHighLowRegressionSlopeSeen = false;
 
         #endregion
 
@@ -70,11 +73,25 @@ namespace NinjaTrader.NinjaScript.Indicators
 
             if (IsRealNextBar())
             {
+                CheckFirstLastSessionBar();
                 UpdateDataBars();
                 UpdateGlobalStateForPreviousData();
             }
 
             UpdateGlobalStateForCurrentData();
+        }
+
+        private void CheckFirstLastSessionBar()
+        {
+            _firstSessionBar = Bars.IsFirstBarOfSession;
+
+            if (_firstSessionBar)
+            {
+                _allowHighLowRegressionSlopeSeen = true;
+            }
+
+            if (Bars.IsLastBarOfSession)
+                _allowHighLowRegressionSlopeSeen = false;
         }
 
         protected override void OnRender(ChartControl chartControl, ChartScale chartScale)
@@ -94,33 +111,68 @@ namespace NinjaTrader.NinjaScript.Indicators
                     cumulativeMinDelta
                 };
 
-                RenderStatsBox();
+                // Increase by 20 for each row needed
+                int height = 20;
+                int heightSpacer = 20;
+                int statsBoxHeight = (stats.Count * 20) + heightSpacer + height;
+                int extraStatsWidth = 0;
 
-                int startPointY = 30;
+                foreach (StatsDisplayData stat in stats)
+                {
+                    int maxLength = 0;
+                    int length = (stat.labelText + stat.text + stat.currentText).Length;
+
+                    if (length > maxLength)
+                    {
+                        maxLength = length;
+                        extraStatsWidth = maxLength;
+                    }
+                }
+
+                RenderStatsBox(statsBoxHeight, extraStatsWidth);
+
+                int startPointY = 26;
 
                 foreach (StatsDisplayData stat in stats)
                 {
                     if (stat.labelText == "Median Point of Control")
                     {
-                        RenderStatsPointOfControlText(startPointY, stat.direction, stat.labelText, stat.text);
+                        RenderTwoColumns(startPointY, stat.direction, stat.labelText, stat.text);
                     }
                     else
                     {
-                        RenderStatsCumulativeDeltaText(startPointY, stat.direction, stat.currentDirection, stat.labelText, stat.text, stat.currentText);
+                        RenderThreeColumns(startPointY, stat.direction, stat.currentDirection, stat.labelText, stat.text, stat.currentText);
                     }
 
                     startPointY += 20;
                 }
+
+                RenderLinearRegressionSlope(startPointY, heightSpacer);
             }
             catch
             {
                 Print("Error OnRender");
             }
         }
-
-        private void RenderStatsBox()
+        private void RenderLinearRegressionSlope(int startPointY, int heightSpacer)
         {
-            SharpDX.RectangleF rectangleF = new SharpDX.RectangleF(ChartPanel.X + 10, ChartPanel.Y + 25, 430, 90);
+            StatsDisplayData linearRegressionSlope = GlobalState.OrderFlowStatsDisplay.LinearRegressionSlope;
+            string labelText = linearRegressionSlope.labelText;
+            string text = linearRegressionSlope.text;
+            string currentText = linearRegressionSlope.currentText;
+
+            RenderThreeColumns(startPointY + heightSpacer, Direction.FLAT, linearRegressionSlope.currentDirection, labelText, text, currentText);
+        }
+
+        #region SharpDX Rendering
+
+        private void RenderStatsBox(int statsBoxHeight, int extraStatsWidth)
+        {
+            int defaultStatsWidth = 450;
+            int defaultMinRowTextLength = 60;
+            int statsWidth = extraStatsWidth > defaultMinRowTextLength ? defaultStatsWidth + extraStatsWidth : defaultStatsWidth;
+
+            SharpDX.RectangleF rectangleF = new SharpDX.RectangleF(ChartPanel.X + 10, ChartPanel.Y + 25, statsWidth, statsBoxHeight);
             SharpDX.Direct2D1.SolidColorBrush brush = new SharpDX.Direct2D1.SolidColorBrush(RenderTarget, SharpDX.Color.Black);
             RenderTarget.FillRectangle(rectangleF, brush);
             RenderTarget.DrawRectangle(rectangleF, brush);
@@ -128,7 +180,7 @@ namespace NinjaTrader.NinjaScript.Indicators
             brush.Dispose();
         }
 
-        private void RenderStatsPointOfControlText(int startPointY, Direction direction, string labelText, string text)
+        private void RenderTwoColumns(int startPointY, Direction direction, string labelText, string text)
         {
             SharpDX.Vector2 labelTextStartPoint = GetStartPoint(15, startPointY);
             SharpDX.Vector2 textStartPoint = GetStartPoint(180, startPointY);
@@ -151,7 +203,7 @@ namespace NinjaTrader.NinjaScript.Indicators
             textBrush.Dispose();
         }
 
-        private void RenderStatsCumulativeDeltaText(int startPointY, Direction direction, Direction currentDirection, string labelText, string text, string currentText)
+        private void RenderThreeColumns(int startPointY, Direction direction, Direction currentDirection, string labelText, string text, string currentText)
         {
             SharpDX.Vector2 labelTextStartPoint = GetStartPoint(15, startPointY);
             SharpDX.Vector2 textStartPoint = GetStartPoint(180, startPointY);
@@ -217,6 +269,10 @@ namespace NinjaTrader.NinjaScript.Indicators
             return color;
         }
 
+        #endregion
+
+        #region Print
+
         private void PrintDataBar()
         {
             DataBar dataBar = GlobalState.DataBars.Last();
@@ -231,6 +287,7 @@ namespace NinjaTrader.NinjaScript.Indicators
             Print(string.Format("Delta Change: {0}", dataBar.deltaChange));
             Print(string.Format("Cumulative Delta: {0}", dataBar.cumulativeDelta));
             Print(string.Format("Point of Control: {0}", dataBar.pointOfControl));
+            Print(string.Format("Linear Regression Slope: {0}", dataBar.linearRegressionSlope));
             Print("\n");
         }
 
@@ -244,8 +301,12 @@ namespace NinjaTrader.NinjaScript.Indicators
             Print(string.Format("Cumulative Max Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMaxDelta.percent));
             Print(string.Format("Cumulative Min Delta Change: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.change));
             Print(string.Format("Cumulative Min Delta Change Percent: {0}", GlobalState.OrderFlowStats.CumulativeMinDelta.percent));
+            Print(string.Format("Session Linear Regression Slope High: {0}", GlobalState.OrderFlowStats.LinearRegressionSlope.sessionHigh));
+            Print(string.Format("Session Linear Regression Slope Low: {0}", GlobalState.OrderFlowStats.LinearRegressionSlope.sessionLow));
             Print("\n");
         }
+
+        #endregion
 
         // IsFirstTickOfBar seems to still use two bars ago from current bar that visually formed.
         // This will check the bar number instead of using IsFirstTickOfBar
@@ -273,6 +334,11 @@ namespace NinjaTrader.NinjaScript.Indicators
         {
             StatsHelper.SetMedianPointOfControl();
             StatsHelper.SetCumulativeDeltaChanges();
+
+            if (_allowHighLowRegressionSlopeSeen)
+            {
+                StatsHelper.SetSessionHighLowLinearRegressionSlope(_firstSessionBar);
+            }
         }
 
         private void UpdateGlobalStateForCurrentData()
@@ -287,6 +353,8 @@ namespace NinjaTrader.NinjaScript.Indicators
 
             StatsHelper.SetClose(Close[0]);
             StatsHelper.SetCurrentCumulativeDeltaChanges(currentBar.CumulativeDelta, currentBar.MaxSeenDelta, currentBar.MinSeenDelta);
+            StatsHelper.SetCurrentLinearRegressionSlope(Math.Round(LinRegSlope(14)[0], 5));
+
             StatsDisplayHelper.SetStatsDisplay();
         }
 
@@ -318,6 +386,7 @@ namespace NinjaTrader.NinjaScript.Indicators
             dataBar.deltaChange = delta - barsType.Volumes[CurrentBar - (offsetBar + 1)].BarDelta;
             dataBar.cumulativeDelta = previousVolumetricBar.CumulativeDelta;
             dataBar.pointOfControl = dataBarPointOfControl;
+            dataBar.linearRegressionSlope = Math.Round(LinRegSlope(14)[offsetBar], 5);
 
             GlobalState.DataBars.Add(dataBar);
         }

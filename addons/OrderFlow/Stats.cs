@@ -14,29 +14,39 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
         public long LastCumulativeMaxDelta { get; set; }
         public long FirstCumulativeMinDelta { get; set; }
         public long LastCumulativeMinDelta { get; set; }
-        public CumulativeDelta CumulativeDelta { get; set; }
-        public CumulativeDelta CumulativeMaxDelta { get; set; }
-        public CumulativeDelta CumulativeMinDelta { get; set; }
-        public CumulativeDelta CurrentCumulativeDelta { get; set; }
-        public CumulativeDelta CurrentCumulativeMaxDelta { get; set; }
-        public CumulativeDelta CurrentCumulativeMinDelta { get; set; }
+        public StatsData CumulativeDelta { get; set; }
+        public StatsData CumulativeMaxDelta { get; set; }
+        public StatsData CumulativeMinDelta { get; set; }
+        public StatsData CurrentCumulativeDelta { get; set; }
+        public StatsData CurrentCumulativeMaxDelta { get; set; }
+        public StatsData CurrentCumulativeMinDelta { get; set; }
+        public StatsDataSession LinearRegressionSlope { get; set; }
+        public StatsData CurrentLinearRegressionSlope { get; set; }
 
         public Stats()
         {
-            CumulativeDelta = new CumulativeDelta();
-            CumulativeMaxDelta = new CumulativeDelta();
-            CumulativeMinDelta = new CumulativeDelta();
-            CurrentCumulativeDelta = new CumulativeDelta();
-            CurrentCumulativeMaxDelta = new CumulativeDelta();
-            CurrentCumulativeMinDelta = new CumulativeDelta();
+            CumulativeDelta = new StatsData();
+            CumulativeMaxDelta = new StatsData();
+            CumulativeMinDelta = new StatsData();
+            CurrentCumulativeDelta = new StatsData();
+            CurrentCumulativeMaxDelta = new StatsData();
+            CurrentCumulativeMinDelta = new StatsData();
+            LinearRegressionSlope = new StatsDataSession();
+            CurrentLinearRegressionSlope = new StatsData();
         }
     }
 
-    public class CumulativeDelta
+    public class StatsData
     {
         public long change;
         public double percent;
-        public long currentDelta;
+        public dynamic current;
+    }
+
+    public class StatsDataSession
+    {
+        public double sessionHigh;
+        public double sessionLow;
     }
 
     public class StatsDisplay
@@ -45,6 +55,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
         public StatsDisplayData CumulativeDelta { get; set; }
         public StatsDisplayData CumulativeMaxDelta { get; set; }
         public StatsDisplayData CumulativeMinDelta { get; set; }
+        public StatsDisplayData LinearRegressionSlope { get; set; }
 
         public StatsDisplay()
         {
@@ -52,6 +63,7 @@ namespace NinjaTrader.NinjaScript.AddOns.OrderFlow
             CumulativeDelta = new StatsDisplayData();
             CumulativeMaxDelta = new StatsDisplayData();
             CumulativeMinDelta = new StatsDisplayData();
+            LinearRegressionSlope = new StatsDisplayData();
         }
     }
 
